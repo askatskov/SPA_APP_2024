@@ -30,7 +30,8 @@ EnsureDatabaseCreated(app.Services);
 if (app.Environment.IsDevelopment()){
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors("MyPolicy");
+    app.UseCors("MyPol" +
+        "icy");
 }
 
 app.UseHttpsRedirection();
