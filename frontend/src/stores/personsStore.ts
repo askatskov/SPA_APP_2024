@@ -1,29 +1,32 @@
 import { type Person } from "@/models/person";
 import { ref } from "vue";
 import { defineStore } from "pinia";
-import useApi from "@/models/api";
+import useApi, { useApiRawRequest } from "@/models/api";
 
 export const usePersonsStore = defineStore('personsStore', () => {
     const apiGetPersons = useApi<Person[]>('persons');
     const persons = ref<Person[]>([]);
     let allPersons: Person[] = [];
 
-    const load = async () => {
+    const loadPersons = async () => {
         await apiGetPersons.request();
+
         if (apiGetPersons.response.value) {
-            allPersons = apiGetPersons.response.value;
-            persons.value = allPersons;
-        } else {
-            allPersons = [];
-            persons.value = [];
+            return apiGetPersons.response.value;
         }
+        return [];
     };
 
-    const getPersonById = (id: number) => {
+    const load = async () => {
+        allPersons = await loadPersons();
+        persons.value = allPersons;
+    };
+    const getPersonById = (id: Number) => {
         return allPersons.find((person) => person.id === id);
     };
 
-    const addPerson = async (person: Omit<Person, 'id'>) => {
+
+    const addPerson = async (person: Person) => {
         const apiAddPerson = useApi<Person>('persons', {
             method: 'POST',
             headers: {
@@ -35,10 +38,9 @@ export const usePersonsStore = defineStore('personsStore', () => {
 
         await apiAddPerson.request();
         if (apiAddPerson.response.value) {
-            await load();
+            load();
         }
     };
-
     const updatePerson = async (person: Person) => {
         const apiUpdatePerson = useApi<Person>('persons/' + person.id, {
             method: 'PUT',
@@ -51,30 +53,32 @@ export const usePersonsStore = defineStore('personsStore', () => {
 
         await apiUpdatePerson.request();
         if (apiUpdatePerson.response.value) {
-            await load();
+            load();
         }
     };
 
-    const deletePerson = async (id: number) => {
-        try {
-            const res = await fetch(`persons/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    Accept: 'application/json',
-                },
-            });
 
-            if (res.ok) {
-                await load();
-            } else {
-                console.error('Kustutamine ebaõnnestus', res.status);
+    const deletePerson = async (person: Person) => {
+        const deletePersonRequest = useApiRawRequest(`events/${person.id}`, {
+            method: 'DELETE',
+        });
+
+        const res = await deletePersonRequest();
+
+        if (res.status === 204) {
+            let id = persons.value.indexOf(person);
+
+            if (id !== -1) {
+                persons.value.splice(id, 1);
             }
-        } catch (error) {
-            console.error('Viga kustutamisel', error);
+
+            id = persons.value.indexOf(person);
+
+            if (id !== -1) {
+                persons.value.splice(id, 1);
+            }
         }
     };
-
-
 
     return { persons, load, getPersonById, addPerson, updatePerson, deletePerson };
 });

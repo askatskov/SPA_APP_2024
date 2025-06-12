@@ -9,4 +9,5 @@
     import { defineProps } from "vue";
 
     defineProps<{ title: String }>();
+
 </script>
