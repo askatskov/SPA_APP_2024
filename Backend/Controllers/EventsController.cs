@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
@@ -10,12 +11,15 @@ public class EventsController : ControllerBase {
     public EventsController(DataContext c)  {
         context = c;
     }
-    [HttpGet] public IActionResult GetEvents() {        
+    [HttpGet]
+    [Authorize]
+    [Authorize] public IActionResult GetEvents() {        
         var events = context.EventList!.AsQueryable();
         return Ok(events);
 
     }   
-    [HttpPost] public IActionResult Create([FromBody] Event e) {
+    [HttpPost]
+    [Authorize] public IActionResult Create([FromBody] Event e) {
         var dbEvent = context.EventList?.Find(e.Id); 
         if (dbEvent == null) {
             context.EventList?.Add(e); 

@@ -1,5 +1,6 @@
 ﻿using backend.Model;
 using Backend.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,13 +15,17 @@ public class PersonsController : ControllerBase
 		context = c;
 	}
 	[HttpGet]
-	public IActionResult GetPersons()
+	[Authorize]
+
+    public IActionResult GetPersons()
 	{
 		var persons = context.PersonList!.AsQueryable();
 		return Ok(persons);
 	}
 	[HttpPost]
-	public IActionResult Create([FromBody] Person p)
+    [Authorize]
+
+    public IActionResult Create([FromBody] Person p)
 	{
 		var dbPerson = context.PersonList?.Find(p.Id);
 		if (dbPerson == null)
@@ -32,7 +37,9 @@ public class PersonsController : ControllerBase
 		return Conflict();
 	}
 	[HttpPut("{id}")]
-	public IActionResult Update(int? id, [FromBody] Person p)
+    [Authorize]
+
+    public IActionResult Update(int? id, [FromBody] Person p)
 	{
 		var dbPerson = context.PersonList!.AsNoTracking().FirstOrDefault(personInDb => personInDb.Id == p.Id);
 		if (id != p.Id || dbPerson == null) return NotFound();
@@ -41,7 +48,8 @@ public class PersonsController : ControllerBase
 		return NoContent();
 	}
 	[HttpDelete("{id}")]
-	public IActionResult Delete(int id)
+    [Authorize]
+    public IActionResult Delete(int id)
 	{
 		var personToDelete = context.PersonList?.Find(id);
 		if (personToDelete == null) return NotFound();
